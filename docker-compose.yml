@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: clinica-db
+    environment:
+      POSTGRES_DB: clinica
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica
+    ports:
+      - "5432:5432"
+    volumes:
+      - clinica-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d clinica"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: clinica-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/clinica
+      DB_USER: clinica
+      DB_PASSWORD: clinica
+      JWT_SECRET: troque-este-segredo-por-um-valor-com-no-minimo-32-caracteres
+      ADMIN_EMAIL: admin@clinica.com
+      ADMIN_PASSWORD: Admin@123
+    ports:
+      - "8080:8080"
+
+volumes:
+  clinica-data:
